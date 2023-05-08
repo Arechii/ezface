@@ -9,6 +9,13 @@ services:
     working_dir: /app
     ports:
       - "3000:3000"
-    image: t3-app
+    image: ezface-app
+    depends_on:
+      - deepface
     environment:
-      - DATABASE_URL=database_url_goes_here
+      - DATABASE_URL=file:./db.sqlite
+
+  deepface:
+    build:
+      context: deepface
+    image: ezface-deepface
