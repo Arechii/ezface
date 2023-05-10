@@ -1,4 +1,5 @@
 import axios from "axios";
+import { Base64 } from "js-base64";
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
@@ -10,6 +11,7 @@ import {
 } from "~/utils/constants";
 
 const Input = z.object({
+  images: z.string().refine(Base64.isValid).array(),
   model: z.enum(MODELS),
   detector: z.enum(DETECTORS),
   similarityMetric: z.enum(SIMILARITY_METRICS),

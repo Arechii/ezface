@@ -1,11 +1,14 @@
 import {
+  ArrowUpTrayIcon,
   MagnifyingGlassCircleIcon,
   PlusCircleIcon,
+  XCircleIcon,
 } from "@heroicons/react/20/solid";
 import { type inferProcedureInput } from "@trpc/server";
 import { type NextPage } from "next";
 import Head from "next/head";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useDropzone } from "react-dropzone";
 import Select from "~/components/select";
 import { type AppRouter } from "~/server/api/root";
 import { api } from "~/utils/api";
@@ -20,7 +23,30 @@ type Input = inferProcedureInput<AppRouter["deepface"]["find"]>;
 
 const Home: NextPage = () => {
   const find = api.deepface.find.useMutation();
+  const [files, setFiles] = useState<string[]>([]);
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    acceptedFiles.forEach((file) => {
+      const reader = new FileReader();
+
+      reader.onabort = () => console.log("file reading was aborted");
+      reader.onerror = () => console.log("file reading has failed");
+      reader.onload = () => {
+        const binaryStr = reader.result as string;
+        setFiles((prev) => [...prev, binaryStr]);
+      };
+      reader.readAsDataURL(file);
+    });
+  }, []);
+  const { getRootProps, getInputProps, isDragAccept, isDragReject } =
+    useDropzone({
+      onDrop,
+      accept: {
+        "image/jpeg": [],
+        "image/png": [],
+      },
+    });
   const [input, setInput] = useState<Input>({
+    images: [],
     model: MODELS[0],
     detector: DETECTORS[0],
     similarityMetric: SIMILARITY_METRICS[0],
@@ -42,8 +68,8 @@ const Home: NextPage = () => {
           <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
             Ez<span className="text-[hsl(213,100%,70%)]">Face</span>
           </h1>
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-row gap-2 rounded-xl bg-white/10 p-4 text-white">
+          <div className="flex max-w-2xl flex-col gap-2">
+            <div className="z-10 flex flex-row gap-2 rounded-xl bg-white/10 p-4 text-white">
               <div className="w-40">
                 <h3 className="text-md">Model</h3>
                 <Select
@@ -98,8 +124,32 @@ const Home: NextPage = () => {
                 />
               </div>
             </div>
-            <div className="relative flex h-96 w-full flex-col items-center justify-center gap-4 rounded-xl bg-white/10 p-4 text-white">
-              <div className="absolute bottom-0 right-0 mb-2 mr-2 flex flex-row gap-1 font-bold">
+            {files.length > 0 && (
+              <div className="flex h-16 flex-row gap-2 overflow-x-scroll rounded-xl bg-white/10 p-2">
+                {files.map((file, i) => (
+                  <img key={i} src={file} className="h-12 rounded-xl" />
+                ))}
+              </div>
+            )}
+            <div
+              className="relative flex h-96 w-full flex-col items-center justify-center gap-4 rounded-xl bg-white/10 p-2 text-white"
+              {...getRootProps()}
+            >
+              <div
+                className={`flex h-full w-full items-center justify-center rounded-xl border-2 border-[hsl(213,100%,70%)] ${
+                  isDragAccept ? "border-teal-500" : ""
+                } ${isDragReject ? "border-red-500" : ""}
+                `}
+              >
+                <input {...getInputProps()} />
+                <ArrowUpTrayIcon
+                  className={`h-8 w-8 text-[hsl(213,100%,70%)] ${
+                    isDragAccept ? "text-teal-500" : ""
+                  } ${isDragReject ? "text-red-500" : ""}`}
+                  aria-hidden="true"
+                />
+              </div>
+              <div className="absolute bottom-0 right-0 mb-3 mr-3 flex flex-row gap-1 font-bold">
                 <button className="rounded-lg p-1 text-green-500 hover:bg-white/20">
                   <PlusCircleIcon className="h-8 w-8" aria-hidden="true" />
                 </button>
@@ -108,6 +158,9 @@ const Home: NextPage = () => {
                     className="h-8 w-8"
                     aria-hidden="true"
                   />
+                </button>
+                <button className="rounded-lg p-1 text-red-500 hover:bg-white/20">
+                  <XCircleIcon className="h-8 w-8" aria-hidden="true" />
                 </button>
               </div>
             </div>
