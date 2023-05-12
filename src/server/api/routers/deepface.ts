@@ -1,5 +1,4 @@
 import axios from "axios";
-import { Base64 } from "js-base64";
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
@@ -11,7 +10,7 @@ import {
 } from "~/utils/constants";
 
 const Input = z.object({
-  images: z.string().refine(Base64.isValid).array(),
+  images: z.array(z.string().url()),
   model: z.enum(MODELS),
   detector: z.enum(DETECTORS),
   similarityMetric: z.enum(SIMILARITY_METRICS),
@@ -20,18 +19,23 @@ const Input = z.object({
 
 export const deepfaceRouter = createTRPCRouter({
   represent: publicProcedure.input(Input).mutation(async ({ input }) => {
-    const { data } = await axios.post<unknown>(
-      "http://deepface:5000/represent",
-      {
-        img: "",
-        model_name: input.model,
-        detector_backend: input.detector,
-      }
-    );
+    for (const image of input.images) {
+      const { data } = await axios.post<unknown>(
+        "http://deepface:5000/represent",
+        {
+          img: image,
+          model_name: input.model,
+          detector_backend: input.detector.toLowerCase(),
+        }
+      );
 
-    console.log(data, null, 2);
+      console.log(data);
+    }
   }),
-  find: publicProcedure.input(Input).mutation(() => {
-    console.log("find");
+  find: publicProcedure.input(Input).mutation(async ({ input }) => {
+    for (const image of input.images) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log(image);
+    }
   }),
 });

@@ -1,5 +1,4 @@
 import {
-  ArrowUpTrayIcon,
   MagnifyingGlassCircleIcon,
   PlusCircleIcon,
   XCircleIcon,
@@ -7,8 +6,8 @@ import {
 import { type inferProcedureInput } from "@trpc/server";
 import { type NextPage } from "next";
 import Head from "next/head";
-import { useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import Image from "next/image";
+import { useState } from "react";
 import Select from "~/components/select";
 import { type AppRouter } from "~/server/api/root";
 import { api } from "~/utils/api";
@@ -19,32 +18,16 @@ import {
   SIMILARITY_METRICS,
 } from "~/utils/constants";
 
-type Input = inferProcedureInput<AppRouter["deepface"]["find"]>;
+import { UploadButton } from "@uploadthing/react";
+import "@uploadthing/react/styles.css";
+import { FaceRouter } from "~/server/uploadthing";
+
+type Input = Omit<inferProcedureInput<AppRouter["deepface"]["find"]>, "image">;
 
 const Home: NextPage = () => {
+  const represent = api.deepface.represent.useMutation();
   const find = api.deepface.find.useMutation();
-  const [files, setFiles] = useState<string[]>([]);
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    acceptedFiles.forEach((file) => {
-      const reader = new FileReader();
 
-      reader.onabort = () => console.log("file reading was aborted");
-      reader.onerror = () => console.log("file reading has failed");
-      reader.onload = () => {
-        const binaryStr = reader.result as string;
-        setFiles((prev) => [...prev, binaryStr]);
-      };
-      reader.readAsDataURL(file);
-    });
-  }, []);
-  const { getRootProps, getInputProps, isDragAccept, isDragReject } =
-    useDropzone({
-      onDrop,
-      accept: {
-        "image/jpeg": [],
-        "image/png": [],
-      },
-    });
   const [input, setInput] = useState<Input>({
     images: [],
     model: MODELS[0],
@@ -124,46 +107,51 @@ const Home: NextPage = () => {
                 />
               </div>
             </div>
-            {files.length > 0 && (
+            {input.images.length > 0 && (
               <div className="flex h-16 flex-row gap-2 overflow-x-scroll rounded-xl bg-white/10 p-2">
-                {files.map((file, i) => (
-                  <img key={i} src={file} className="h-12 rounded-xl" />
+                {input.images.map((image, i) => (
+                  <Image
+                    key={i}
+                    src={image}
+                    className="h-12 rounded-xl"
+                    alt=""
+                  />
                 ))}
               </div>
             )}
-            <div
-              className="relative flex h-96 w-full flex-col items-center justify-center gap-4 rounded-xl bg-white/10 p-2 text-white"
-              {...getRootProps()}
-            >
-              <div
-                className={`flex h-full w-full items-center justify-center rounded-xl border-2 border-[hsl(213,100%,70%)] ${
-                  isDragAccept ? "border-teal-500" : ""
-                } ${isDragReject ? "border-red-500" : ""}
-                `}
-              >
-                <input {...getInputProps()} />
-                <ArrowUpTrayIcon
-                  className={`h-8 w-8 text-[hsl(213,100%,70%)] ${
-                    isDragAccept ? "text-teal-500" : ""
-                  } ${isDragReject ? "text-red-500" : ""}`}
-                  aria-hidden="true"
-                />
-              </div>
+            <div className="relative flex h-96 w-full flex-col items-center justify-center gap-4 rounded-xl bg-white/10 p-2 text-white">
               <div className="absolute bottom-0 right-0 mb-3 mr-3 flex flex-row gap-1 font-bold">
                 <button className="rounded-lg p-1 text-green-500 hover:bg-white/20">
-                  <PlusCircleIcon className="h-8 w-8" aria-hidden="true" />
+                  <PlusCircleIcon
+                    className="h-8 w-8"
+                    aria-hidden="true"
+                    onClick={() => represent.mutate(input)}
+                  />
                 </button>
-                <button className="rounded-lg p-1 text-yellow-500 hover:bg-white/20">
+                <button
+                  className="rounded-lg p-1 text-yellow-500 hover:bg-white/20"
+                  onClick={() => find.mutate(input)}
+                >
                   <MagnifyingGlassCircleIcon
                     className="h-8 w-8"
                     aria-hidden="true"
                   />
                 </button>
-                <button className="rounded-lg p-1 text-red-500 hover:bg-white/20">
+                <button
+                  className="rounded-lg p-1 text-red-500 hover:bg-white/20"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setInput((prev) => ({ ...prev, images: [] }));
+                  }}
+                >
                   <XCircleIcon className="h-8 w-8" aria-hidden="true" />
                 </button>
               </div>
             </div>
+            <UploadButton<FaceRouter>
+              endpoint="imageUploader"
+              onClientUploadComplete={() => {}}
+            />
           </div>
         </div>
       </main>
