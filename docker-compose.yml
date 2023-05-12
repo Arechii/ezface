@@ -12,6 +12,7 @@ services:
     image: ezface-app
     depends_on:
       - deepface
+      - qdrant
     environment:
       - DATABASE_URL=file:./db.sqlite
 
