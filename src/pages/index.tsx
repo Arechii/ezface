@@ -20,7 +20,7 @@ import {
 
 import { UploadButton } from "@uploadthing/react";
 import "@uploadthing/react/styles.css";
-import { FaceRouter } from "~/server/uploadthing";
+import { type FaceRouter } from "~/server/uploadthing";
 
 type Input = Omit<inferProcedureInput<AppRouter["deepface"]["find"]>, "image">;
 
@@ -150,7 +150,9 @@ const Home: NextPage = () => {
             </div>
             <UploadButton<FaceRouter>
               endpoint="imageUploader"
-              onClientUploadComplete={() => {}}
+              onClientUploadComplete={() =>
+                console.log("client upload complete")
+              }
             />
           </div>
         </div>
