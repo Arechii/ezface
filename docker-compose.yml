@@ -19,3 +19,6 @@ services:
     build:
       context: deepface
     image: ezface-deepface
+
+  qdrant:
+    image: qdrant/qdrant
