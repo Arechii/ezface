@@ -15,7 +15,9 @@ services:
       - qdrant
       - postgres
     environment:
-      - DATABASE_URL=file:./db.sqlite
+      - DATABASE_URL=postgresql://ezface:ezface@postgres:5432/ezface
+      - UPLOADTHING_SECRET=sk_live_1234
+      - UPLOADTHING_APP_ID=1234
 
   deepface:
     build:
@@ -27,6 +29,8 @@ services:
 
   postgres:
     image: ankane/pgvector
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_USER: ezface
       POSTGRES_PASSWORD: ezface
