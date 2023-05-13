@@ -21,4 +21,4 @@ export const DETECTORS = [
 
 export const SIMILARITY_METRICS = ["Cosine", "Euclidean"] as const;
 
-export const DATABASES = ["PostgreSQL", "Qdrant", "Pinecone"] as const;
+export const DATABASES = ["PostgreSQL", "Qdrant", "Redis"] as const;
