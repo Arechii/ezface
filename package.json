@@ -19,14 +19,14 @@
     "@trpc/next": "^10.18.0",
     "@trpc/react-query": "^10.18.0",
     "@trpc/server": "^10.18.0",
-    "@uploadthing/react": "^3.0.1",
+    "@uploadthing/react": "^3.0.2",
     "axios": "^1.4.0",
     "next": "^13.2.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-dropzone": "^14.2.3",
     "superjson": "1.12.2",
-    "uploadthing": "^3.0.1",
+    "uploadthing": "^3.0.2",
     "zod": "^3.21.4"
   },
   "devDependencies": {

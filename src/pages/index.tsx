@@ -1,15 +1,18 @@
 import {
+  ArrowUpTrayIcon,
   MagnifyingGlassCircleIcon,
   PlusCircleIcon,
   XCircleIcon,
 } from "@heroicons/react/20/solid";
 import { type inferProcedureInput } from "@trpc/server";
+import { generateReactHelpers } from "@uploadthing/react/hooks";
 import { type NextPage } from "next";
 import Head from "next/head";
-import Image from "next/image";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useDropzone } from "react-dropzone";
 import Select from "~/components/select";
 import { type AppRouter } from "~/server/api/root";
+import { type FaceRouter } from "~/server/uploadthing";
 import { api } from "~/utils/api";
 import {
   DATABASES,
@@ -18,9 +21,7 @@ import {
   SIMILARITY_METRICS,
 } from "~/utils/constants";
 
-import { UploadButton } from "@uploadthing/react";
-import "@uploadthing/react/styles.css";
-import { type FaceRouter } from "~/server/uploadthing";
+const { useUploadThing } = generateReactHelpers<FaceRouter>();
 
 type Input = Omit<inferProcedureInput<AppRouter["deepface"]["find"]>, "image">;
 
@@ -35,6 +36,31 @@ const Home: NextPage = () => {
     similarityMetric: SIMILARITY_METRICS[0],
     database: DATABASES[0],
   });
+
+  const { startUpload, isUploading } = useUploadThing({
+    endpoint: "imageUploader",
+    onClientUploadComplete: (r) =>
+      r &&
+      setInput((prev) => ({
+        ...prev,
+        images: [...prev.images, ...r.map((r) => r.fileUrl)],
+      })),
+  });
+
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      void startUpload(acceptedFiles);
+    },
+    [startUpload]
+  );
+  const { getRootProps, getInputProps, isDragAccept, isDragReject } =
+    useDropzone({
+      onDrop,
+      accept: {
+        "image/jpeg": [],
+        "image/png": [],
+      },
+    });
 
   return (
     <>
@@ -110,16 +136,33 @@ const Home: NextPage = () => {
             {input.images.length > 0 && (
               <div className="flex h-16 flex-row gap-2 overflow-x-scroll rounded-xl bg-white/10 p-2">
                 {input.images.map((image, i) => (
-                  <Image
-                    key={i}
-                    src={image}
-                    className="h-12 rounded-xl"
-                    alt=""
-                  />
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={i} src={image} className="h-12 rounded-xl" alt="" />
                 ))}
               </div>
             )}
-            <div className="relative flex h-96 w-full flex-col items-center justify-center gap-4 rounded-xl bg-white/10 p-2 text-white">
+            <div
+              className="relative flex h-96 w-full flex-col items-center justify-center gap-4 rounded-xl bg-white/10 p-2 text-white"
+              {...getRootProps()}
+            >
+              <div
+                className={`flex h-full w-full items-center justify-center rounded-xl border-2 border-[hsl(213,100%,70%)] ${
+                  isDragAccept ? "border-teal-500" : ""
+                } ${isDragReject ? "border-red-500" : ""}
+                `}
+              >
+                <input {...getInputProps()} />
+                {!isUploading ? (
+                  <ArrowUpTrayIcon
+                    className={`h-8 w-8 text-[hsl(213,100%,70%)] hover:cursor-pointer ${
+                      isDragAccept ? "text-teal-500" : ""
+                    } ${isDragReject ? "text-red-500" : ""}`}
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <span>Uploading...</span>
+                )}
+              </div>
               <div className="absolute bottom-0 right-0 mb-3 mr-3 flex flex-row gap-1 font-bold">
                 <button className="rounded-lg p-1 text-green-500 hover:bg-white/20">
                   <PlusCircleIcon
@@ -148,12 +191,6 @@ const Home: NextPage = () => {
                 </button>
               </div>
             </div>
-            <UploadButton<FaceRouter>
-              endpoint="imageUploader"
-              onClientUploadComplete={() =>
-                console.log("client upload complete")
-              }
-            />
           </div>
         </div>
       </main>
