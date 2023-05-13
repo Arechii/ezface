@@ -13,6 +13,7 @@ services:
     depends_on:
       - deepface
       - qdrant
+      - postgres
     environment:
       - DATABASE_URL=file:./db.sqlite
 
@@ -23,3 +24,10 @@ services:
 
   qdrant:
     image: qdrant/qdrant
+
+  postgres:
+    image: ankane/pgvector
+    environment:
+      POSTGRES_USER: ezface
+      POSTGRES_PASSWORD: ezface
+      POSTGRES_DB: ezface
