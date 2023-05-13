@@ -1,31 +1,11 @@
 version: "3.9"
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_CLIENTVAR: "clientvar"
-    working_dir: /app
-    ports:
-      - "3000:3000"
-    image: ezface-app
-    depends_on:
-      - deepface
-      - qdrant
-      - postgres
-    environment:
-      - DATABASE_URL=postgresql://ezface:ezface@postgres:5432/ezface
-      - UPLOADTHING_SECRET=sk_live_1234
-      - UPLOADTHING_APP_ID=1234
-
   deepface:
     build:
       context: deepface
     image: ezface-deepface
-
-  qdrant:
-    image: qdrant/qdrant
+    ports:
+      - "5000:5000"
 
   postgres:
     image: ankane/pgvector
@@ -35,3 +15,8 @@ services:
       POSTGRES_USER: ezface
       POSTGRES_PASSWORD: ezface
       POSTGRES_DB: ezface
+
+  qdrant:
+    image: qdrant/qdrant
+    ports:
+      - "6333:6333"

@@ -21,7 +21,7 @@ export const deepfaceRouter = createTRPCRouter({
   represent: publicProcedure.input(Input).mutation(async ({ input }) => {
     for (const image of input.images) {
       const { data } = await axios.post<unknown>(
-        "http://deepface:5000/represent",
+        "http://localhost:5000/represent",
         {
           img: image,
           model_name: input.model,
