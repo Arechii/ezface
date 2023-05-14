@@ -23,6 +23,7 @@ export const DISTANCE_METRICS = ["Cosine", "Euclidean"] as const;
 
 export const DATABASES = ["PostgreSQL", "Qdrant", "Redis"] as const;
 
+// ripped from https://github.com/serengil/deepface/blob/master/deepface/commons/distance.py#L32
 export const TRESHOLDS: Record<
   (typeof MODELS)[number],
   Record<(typeof DISTANCE_METRICS)[number], number>
