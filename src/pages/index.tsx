@@ -177,7 +177,7 @@ const Home: NextPage = () => {
                   <span>Uploading...</span>
                 )}
               </div>
-              {input.images.length > 0 && (
+              {input.images.length > 0 && !isUploading && (
                 <div className="absolute bottom-0 right-0 mb-3 mr-3 flex flex-row gap-1 font-bold">
                   <button className="rounded-lg p-1 text-green-500 hover:bg-white/20">
                     <PlusCircleIcon
