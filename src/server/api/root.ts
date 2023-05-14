@@ -118,7 +118,10 @@ export const appRouter = createTRPCRouter({
             url,
             time: (Date.now() - start) / 1000,
             precision:
-              images.filter((i) => i.label === label).length / images.length,
+              images.length === 0
+                ? 1
+                : images.filter((i) => i.label === label).length /
+                  images.length,
             matches: images,
           });
         }
