@@ -43,10 +43,14 @@ const Home: NextPage = () => {
       r &&
       setInput((prev) => ({
         ...prev,
-        images: prev.images.map((i) => ({
-          ...i,
-          url: r.find((r) => r.fileKey.includes(i.label))?.fileUrl ?? "",
-        })),
+        images: prev.images.map((i) => {
+          if (i.url) return i;
+
+          return {
+            ...i,
+            url: r.find((r) => r.fileKey.includes(i.label))?.fileUrl ?? "",
+          };
+        }),
       })),
   });
 
@@ -54,10 +58,13 @@ const Home: NextPage = () => {
     (acceptedFiles: File[]) => {
       setInput((prev) => ({
         ...prev,
-        images: acceptedFiles.map((f) => ({
-          label: f.name.split(".")[0] ?? "",
-          url: "",
-        })),
+        images: [
+          ...prev.images,
+          ...acceptedFiles.map((f) => ({
+            label: f.name.split(".")[0] ?? "",
+            url: "",
+          })),
+        ],
       }));
       void startUpload(acceptedFiles);
     },
