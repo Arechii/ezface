@@ -163,7 +163,7 @@ const Home: NextPage = () => {
             )}
             {!output && (
               <div
-                className="relative flex h-96 w-full flex-col items-center justify-center gap-4 rounded-xl bg-neutral p-2 text-white"
+                className="relative flex h-96 w-full flex-col items-center justify-center gap-4 rounded-xl bg-neutral p-2"
                 {...getRootProps()}
               >
                 <div
@@ -240,6 +240,81 @@ const Home: NextPage = () => {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+            {output && (
+              <div className="relative flex h-96 w-full flex-col gap-4 rounded-xl bg-neutral p-2">
+                <div className="h-5/6 w-full overflow-x-auto rounded-xl">
+                  <table className="table-zebra table-compact table h-full w-full">
+                    <thead>
+                      <tr>
+                        <th>Image</th>
+                        <th>Label</th>
+                        <th>Time</th>
+                        <th>Precision</th>
+                        <th>Matches</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {output.results.map((r, i) => (
+                        <tr key={i}>
+                          <th>
+                            <div className="avatar" key={i}>
+                              <div className="w-8 rounded-xl">
+                                {/*eslint-disable-next-line @next/next/no-img-element*/}
+                                <img src={r.url} alt={r.label} />
+                              </div>
+                            </div>
+                          </th>
+                          <td>
+                            <div className="font-bold">{r.label}</div>
+                          </td>
+                          <td>
+                            <span className="badge-info badge">
+                              {r.time.toFixed(2)}s
+                            </span>
+                          </td>
+                          <td>
+                            <span
+                              className={`${
+                                r.precision > 0.8
+                                  ? "badge-success"
+                                  : "badge-error"
+                              } badge`}
+                            >
+                              {r.precision.toFixed(2)}
+                            </span>
+                          </td>
+                          <td>
+                            <div className="avatar-group -space-x-4">
+                              {r.matches.map((m, i) => (
+                                <div key={i} className="avatar">
+                                  <div className="w-8 rounded-xl">
+                                    {/*eslint-disable-next-line @next/next/no-img-element*/}
+                                    <img src={m.url} alt={m.label} />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="absolute bottom-0 right-0 mb-4 mr-4 flex flex-row gap-1 font-bold">
+                  <div
+                    className="tooltip tooltip-accent"
+                    data-tip="Clear output"
+                  >
+                    <button
+                      className="rounded-lg p-1 text-accent hover:bg-neutral-focus"
+                      onClick={() => setOutput(null)}
+                    >
+                      <XCircleIcon className="h-8 w-8" aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
