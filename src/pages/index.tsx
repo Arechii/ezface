@@ -177,33 +177,35 @@ const Home: NextPage = () => {
                   <span>Uploading...</span>
                 )}
               </div>
-              <div className="absolute bottom-0 right-0 mb-3 mr-3 flex flex-row gap-1 font-bold">
-                <button className="rounded-lg p-1 text-green-500 hover:bg-white/20">
-                  <PlusCircleIcon
-                    className="h-8 w-8"
-                    aria-hidden="true"
-                    onClick={() => represent.mutate(input)}
-                  />
-                </button>
-                <button
-                  className="rounded-lg p-1 text-yellow-500 hover:bg-white/20"
-                  onClick={() => find.mutate(input)}
-                >
-                  <MagnifyingGlassCircleIcon
-                    className="h-8 w-8"
-                    aria-hidden="true"
-                  />
-                </button>
-                <button
-                  className="rounded-lg p-1 text-red-500 hover:bg-white/20"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setInput((prev) => ({ ...prev, images: [] }));
-                  }}
-                >
-                  <XCircleIcon className="h-8 w-8" aria-hidden="true" />
-                </button>
-              </div>
+              {input.images.length > 0 && (
+                <div className="absolute bottom-0 right-0 mb-3 mr-3 flex flex-row gap-1 font-bold">
+                  <button className="rounded-lg p-1 text-green-500 hover:bg-white/20">
+                    <PlusCircleIcon
+                      className="h-8 w-8"
+                      aria-hidden="true"
+                      onClick={() => represent.mutate(input)}
+                    />
+                  </button>
+                  <button
+                    className="rounded-lg p-1 text-yellow-500 hover:bg-white/20"
+                    onClick={() => find.mutate(input)}
+                  >
+                    <MagnifyingGlassCircleIcon
+                      className="h-8 w-8"
+                      aria-hidden="true"
+                    />
+                  </button>
+                  <button
+                    className="rounded-lg p-1 text-red-500 hover:bg-white/20"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setInput((prev) => ({ ...prev, images: [] }));
+                    }}
+                  >
+                    <XCircleIcon className="h-8 w-8" aria-hidden="true" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
