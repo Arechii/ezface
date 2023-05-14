@@ -4,7 +4,10 @@ import {
   PlusCircleIcon,
   XCircleIcon,
 } from "@heroicons/react/20/solid";
-import { type inferProcedureInput } from "@trpc/server";
+import {
+  type inferProcedureInput,
+  type inferProcedureOutput,
+} from "@trpc/server";
 import { generateReactHelpers } from "@uploadthing/react/hooks";
 import { type NextPage } from "next";
 import Head from "next/head";
@@ -24,6 +27,7 @@ import {
 const { useUploadThing } = generateReactHelpers<FaceRouter>();
 
 type Input = inferProcedureInput<AppRouter["find"]>;
+type Output = inferProcedureOutput<AppRouter["find"]>;
 
 const Home: NextPage = () => {
   const represent = api.represent.useMutation();
@@ -36,6 +40,9 @@ const Home: NextPage = () => {
     distanceMetric: DISTANCE_METRICS[0],
     database: DATABASES[0],
   });
+
+  const [isFinding, setIsFinding] = useState(false);
+  const [output, setOutput] = useState<Output | null>(null);
 
   const { startUpload, isUploading } = useUploadThing({
     endpoint: "imageUploader",
@@ -138,7 +145,7 @@ const Home: NextPage = () => {
                 />
               </div>
             </div>
-            {input.images.length > 0 && (
+            {!output && input.images.length > 0 && (
               <div className="flex h-16 flex-row gap-2 overflow-x-scroll rounded-xl bg-neutral p-2">
                 {input.images.map((image, i) => {
                   if (!image.url) return null;
@@ -154,79 +161,87 @@ const Home: NextPage = () => {
                 })}
               </div>
             )}
-            <div
-              className="relative flex h-96 w-full flex-col items-center justify-center gap-4 rounded-xl bg-neutral p-2 text-white"
-              {...getRootProps()}
-            >
+            {!output && (
               <div
-                className={`flex h-full w-full items-center justify-center rounded-xl border-2 border-neutral-content ${
-                  isDragAccept ? "border-success" : ""
-                } ${isDragReject ? "border-error" : ""}
-                `}
+                className="relative flex h-96 w-full flex-col items-center justify-center gap-4 rounded-xl bg-neutral p-2 text-white"
+                {...getRootProps()}
               >
-                <input {...getInputProps()} />
-                {!isUploading ? (
-                  <ArrowUpTrayIcon
-                    className={`h-8 w-8 text-neutral-content hover:cursor-pointer ${
-                      isDragAccept ? "text-success" : ""
-                    } ${isDragReject ? "text-error" : ""}`}
-                    aria-hidden="true"
-                  />
-                ) : (
-                  <span>Uploading...</span>
-                )}
-              </div>
-              {input.images.length > 0 && !isUploading && (
-                <div className="absolute bottom-0 right-0 mb-4 mr-4 flex flex-row gap-1 font-bold">
-                  <div
-                    className="tooltip tooltip-primary"
-                    data-tip="Index images"
-                  >
-                    <button className="rounded-lg p-1 text-primary hover:bg-neutral-focus">
-                      <PlusCircleIcon
-                        className="h-8 w-8"
-                        aria-hidden="true"
+                <div
+                  className={`flex h-full w-full items-center justify-center rounded-xl border-2 border-neutral-content ${
+                    isDragAccept ? "border-success" : ""
+                  } ${isDragReject ? "border-error" : ""}
+                `}
+                >
+                  <input {...getInputProps()} />
+                  {!isUploading && !isFinding ? (
+                    <ArrowUpTrayIcon
+                      className={`h-8 w-8 text-neutral-content hover:cursor-pointer ${
+                        isDragAccept ? "text-success" : ""
+                      } ${isDragReject ? "text-error" : ""}`}
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <progress className="progress progress-primary w-56 bg-base-300/20" />
+                  )}
+                </div>
+                {input.images.length > 0 && !isUploading && (
+                  <div className="absolute bottom-0 right-0 mb-4 mr-4 flex flex-row gap-1 font-bold">
+                    <div
+                      className="tooltip tooltip-primary"
+                      data-tip="Index images"
+                    >
+                      <button className="rounded-lg p-1 text-primary hover:bg-neutral-focus">
+                        <PlusCircleIcon
+                          className="h-8 w-8"
+                          aria-hidden="true"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            represent.mutate(input);
+                          }}
+                        />
+                      </button>
+                    </div>
+                    <div
+                      className="tooltip tooltip-secondary"
+                      data-tip="Find matches"
+                    >
+                      <button
+                        className="rounded-lg p-1 text-secondary hover:bg-neutral-focus"
                         onClick={(e) => {
                           e.stopPropagation();
-                          represent.mutate(input);
+                          setIsFinding(true);
+                          find.mutate(input, {
+                            onSuccess(data) {
+                              setOutput(data);
+                              setIsFinding(false);
+                            },
+                          });
                         }}
-                      />
-                    </button>
-                  </div>
-                  <div
-                    className="tooltip tooltip-secondary"
-                    data-tip="Find matches"
-                  >
-                    <button
-                      className="rounded-lg p-1 text-secondary hover:bg-neutral-focus"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        find.mutate(input);
-                      }}
+                      >
+                        <MagnifyingGlassCircleIcon
+                          className="h-8 w-8"
+                          aria-hidden="true"
+                        />
+                      </button>
+                    </div>
+                    <div
+                      className="tooltip tooltip-accent"
+                      data-tip="Clear input"
                     >
-                      <MagnifyingGlassCircleIcon
-                        className="h-8 w-8"
-                        aria-hidden="true"
-                      />
-                    </button>
+                      <button
+                        className="rounded-lg p-1 text-accent hover:bg-neutral-focus"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setInput((prev) => ({ ...prev, images: [] }));
+                        }}
+                      >
+                        <XCircleIcon className="h-8 w-8" aria-hidden="true" />
+                      </button>
+                    </div>
                   </div>
-                  <div
-                    className="tooltip tooltip-accent"
-                    data-tip="Clear input"
-                  >
-                    <button
-                      className="rounded-lg p-1 text-accent hover:bg-neutral-focus"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setInput((prev) => ({ ...prev, images: [] }));
-                      }}
-                    >
-                      <XCircleIcon className="h-8 w-8" aria-hidden="true" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </main>
