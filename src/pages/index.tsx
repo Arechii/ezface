@@ -23,7 +23,7 @@ import {
 
 const { useUploadThing } = generateReactHelpers<FaceRouter>();
 
-type Input = Omit<inferProcedureInput<AppRouter["deepface"]["find"]>, "image">;
+type Input = inferProcedureInput<AppRouter["deepface"]["find"]>;
 
 const Home: NextPage = () => {
   const represent = api.deepface.represent.useMutation();
@@ -43,16 +43,27 @@ const Home: NextPage = () => {
       r &&
       setInput((prev) => ({
         ...prev,
-        images: [...prev.images, ...r.map((r) => r.fileUrl)],
+        images: prev.images.map((i) => ({
+          ...i,
+          url: r.find((r) => r.fileKey.includes(i.label))?.fileUrl ?? "",
+        })),
       })),
   });
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
+      setInput((prev) => ({
+        ...prev,
+        images: acceptedFiles.map((f) => ({
+          label: f.name.split(".")[0] ?? "",
+          url: "",
+        })),
+      }));
       void startUpload(acceptedFiles);
     },
     [startUpload]
   );
+
   const { getRootProps, getInputProps, isDragAccept, isDragReject } =
     useDropzone({
       onDrop,
@@ -135,10 +146,19 @@ const Home: NextPage = () => {
             </div>
             {input.images.length > 0 && (
               <div className="flex h-16 flex-row gap-2 overflow-x-scroll rounded-xl bg-white/10 p-2">
-                {input.images.map((image, i) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img key={i} src={image} className="h-12 rounded-xl" alt="" />
-                ))}
+                {input.images.map((image, i) => {
+                  if (!image.url) return null;
+
+                  return (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      key={i}
+                      className="h-12 rounded-xl"
+                      src={image.url}
+                      alt={image.label}
+                    />
+                  );
+                })}
               </div>
             )}
             <div

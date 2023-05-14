@@ -14,11 +14,10 @@ datasource db {
 
 model Image {
     id        String                 @id @default(cuid())
-    name      String
-    url       String
     label     String
-    model     String?
-    detector  String?
+    url       String
+    model     String
+    detector  String
     embedding Unsupported("vector")?
     createdAt DateTime               @default(now())
     updatedAt DateTime               @updatedAt

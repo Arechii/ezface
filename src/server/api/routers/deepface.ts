@@ -10,7 +10,12 @@ import {
 } from "~/utils/constants";
 
 const Input = z.object({
-  images: z.array(z.string().url()),
+  images: z.array(
+    z.object({
+      label: z.string().regex(/^[a-zA-Z0-9-_]+$/),
+      url: z.string().url(),
+    })
+  ),
   model: z.enum(MODELS),
   detector: z.enum(DETECTORS),
   similarityMetric: z.enum(SIMILARITY_METRICS),
