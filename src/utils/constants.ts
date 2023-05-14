@@ -19,6 +19,6 @@ export const DETECTORS = [
   "SSD",
 ] as const;
 
-export const SIMILARITY_METRICS = ["Cosine", "Euclidean"] as const;
+export const DISTANCE_METRICS = ["Cosine", "Euclidean"] as const;
 
 export const DATABASES = ["PostgreSQL", "Qdrant", "Redis"] as const;

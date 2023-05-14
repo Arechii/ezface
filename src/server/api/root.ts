@@ -3,8 +3,8 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import {
   DATABASES,
   DETECTORS,
+  DISTANCE_METRICS,
   MODELS,
-  SIMILARITY_METRICS,
 } from "~/utils/constants";
 import { represent } from "~/utils/deepface";
 import { fetchImage } from "~/utils/image";
@@ -18,7 +18,7 @@ const Input = z.object({
   ),
   model: z.enum(MODELS),
   detector: z.enum(DETECTORS),
-  similarityMetric: z.enum(SIMILARITY_METRICS),
+  distanceMetric: z.enum(DISTANCE_METRICS),
   database: z.enum(DATABASES),
 });
 

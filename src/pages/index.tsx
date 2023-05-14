@@ -17,8 +17,8 @@ import { api } from "~/utils/api";
 import {
   DATABASES,
   DETECTORS,
+  DISTANCE_METRICS,
   MODELS,
-  SIMILARITY_METRICS,
 } from "~/utils/constants";
 
 const { useUploadThing } = generateReactHelpers<FaceRouter>();
@@ -33,7 +33,7 @@ const Home: NextPage = () => {
     images: [],
     model: MODELS[0],
     detector: DETECTORS[0],
-    similarityMetric: SIMILARITY_METRICS[0],
+    distanceMetric: DISTANCE_METRICS[0],
     database: DATABASES[0],
   });
 
@@ -118,12 +118,12 @@ const Home: NextPage = () => {
                 />
               </div>
               <div className="w-40">
-                <h3 className="text-md">Similarity Metric</h3>
+                <h3 className="text-md">Distance Metric</h3>
                 <Select
-                  values={SIMILARITY_METRICS}
-                  selected={input.similarityMetric}
-                  setSelected={(similarityMetric) =>
-                    setInput((prev) => ({ ...prev, similarityMetric }))
+                  values={DISTANCE_METRICS}
+                  selected={input.distanceMetric}
+                  setSelected={(distanceMetric) =>
+                    setInput((prev) => ({ ...prev, distanceMetric }))
                   }
                 />
               </div>
