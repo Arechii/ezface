@@ -5,6 +5,7 @@ import {
   DETECTORS,
   DISTANCE_METRICS,
   MODELS,
+  TRESHOLDS,
 } from "~/utils/constants";
 import { represent } from "~/utils/deepface";
 import { fetchImage } from "~/utils/image";
@@ -63,25 +64,24 @@ export const appRouter = createTRPCRouter({
         ctx: { prisma },
       }) => {
         for (const { label, url } of images) {
-          const embedding = await represent(
-            await fetchImage(url),
-            model,
-            detector
+          const embedding = JSON.stringify(
+            await represent(await fetchImage(url), model, detector)
           );
 
           switch (database) {
             case "PostgreSQL":
+              const treshold = TRESHOLDS[model][distanceMetric];
               const query =
                 distanceMetric === "Euclidean"
                   ? prisma.$queryRaw`
                     SELECT label, url, embedding <-> ${embedding}::vector AS distance 
                     FROM "Image" 
-                    WHERE model = ${model} AND detector = ${detector} 
+                    WHERE model = ${model} AND detector = ${detector} AND embedding <-> ${embedding}::vector <= ${treshold} 
                     ORDER BY distance`
                   : prisma.$queryRaw`
                     SELECT label, url, embedding <=> ${embedding}::vector AS distance 
                     FROM "Image" 
-                    WHERE model = ${model} AND detector = ${detector} 
+                    WHERE model = ${model} AND detector = ${detector} AND embedding <=> ${embedding}::vector <= ${treshold} 
                     ORDER BY distance`;
               const images = await query;
               console.log(images);
