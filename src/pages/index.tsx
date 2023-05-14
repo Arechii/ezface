@@ -47,7 +47,7 @@ const Home: NextPage = () => {
           if (i.url) return i;
 
           return {
-            ...i,
+            label: i.label.split(".")[0] ?? i.label,
             url: r.find((r) => r.fileKey.includes(i.label))?.fileUrl ?? "",
           };
         }),
@@ -61,7 +61,7 @@ const Home: NextPage = () => {
         images: [
           ...prev.images,
           ...acceptedFiles.map((f) => ({
-            label: f.name.split(".")[0] ?? "",
+            label: f.name.replace(f.type.split("/")[1] ?? "", ""),
             url: "",
           })),
         ],
