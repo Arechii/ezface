@@ -2,13 +2,17 @@ import { Listbox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { Fragment } from "react";
 
-interface Props {
-  selected: string;
-  setSelected: (value: string) => void;
-  values: readonly string[];
+interface Props<T> {
+  selected: T;
+  setSelected: (value: T) => void;
+  values: readonly T[];
 }
 
-const Select = ({ selected, setSelected, values }: Props) => {
+const Select = <T extends string | number>({
+  selected,
+  setSelected,
+  values,
+}: Props<T>) => {
   return (
     <Listbox value={selected} onChange={setSelected}>
       <div className="relative mt-1">

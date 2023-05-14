@@ -96,10 +96,7 @@ const Home: NextPage = () => {
                   values={MODELS}
                   selected={input.model}
                   setSelected={(model) =>
-                    setInput((prev) => ({
-                      ...prev,
-                      model: model as (typeof MODELS)[number],
-                    }))
+                    setInput((prev) => ({ ...prev, model }))
                   }
                 />
               </div>
@@ -109,10 +106,7 @@ const Home: NextPage = () => {
                   values={DETECTORS}
                   selected={input.detector}
                   setSelected={(detector) =>
-                    setInput((prev) => ({
-                      ...prev,
-                      detector: detector as (typeof DETECTORS)[number],
-                    }))
+                    setInput((prev) => ({ ...prev, detector }))
                   }
                 />
               </div>
@@ -122,11 +116,7 @@ const Home: NextPage = () => {
                   values={SIMILARITY_METRICS}
                   selected={input.similarityMetric}
                   setSelected={(similarityMetric) =>
-                    setInput((prev) => ({
-                      ...prev,
-                      similarityMetric:
-                        similarityMetric as (typeof SIMILARITY_METRICS)[number],
-                    }))
+                    setInput((prev) => ({ ...prev, similarityMetric }))
                   }
                 />
               </div>
@@ -136,10 +126,7 @@ const Home: NextPage = () => {
                   values={DATABASES}
                   selected={input.database}
                   setSelected={(database) =>
-                    setInput((prev) => ({
-                      ...prev,
-                      database: database as (typeof DATABASES)[number],
-                    }))
+                    setInput((prev) => ({ ...prev, database }))
                   }
                 />
               </div>
