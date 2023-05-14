@@ -23,11 +23,11 @@ import {
 
 const { useUploadThing } = generateReactHelpers<FaceRouter>();
 
-type Input = inferProcedureInput<AppRouter["deepface"]["find"]>;
+type Input = inferProcedureInput<AppRouter["find"]>;
 
 const Home: NextPage = () => {
-  const represent = api.deepface.represent.useMutation();
-  const find = api.deepface.find.useMutation();
+  const represent = api.represent.useMutation();
+  const find = api.find.useMutation();
 
   const [input, setInput] = useState<Input>({
     images: [],
