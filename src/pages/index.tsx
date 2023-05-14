@@ -183,12 +183,18 @@ const Home: NextPage = () => {
                     <PlusCircleIcon
                       className="h-8 w-8"
                       aria-hidden="true"
-                      onClick={() => represent.mutate(input)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        represent.mutate(input);
+                      }}
                     />
                   </button>
                   <button
                     className="rounded-lg p-1 text-yellow-500 hover:bg-white/20"
-                    onClick={() => find.mutate(input)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      find.mutate(input);
+                    }}
                   >
                     <MagnifyingGlassCircleIcon
                       className="h-8 w-8"
