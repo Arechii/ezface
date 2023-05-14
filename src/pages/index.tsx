@@ -154,7 +154,11 @@ const Home: NextPage = () => {
                     <div className="avatar" key={i}>
                       <div className="w-12 rounded-xl">
                         {/*eslint-disable-next-line @next/next/no-img-element*/}
-                        <img src={image.url} alt={image.label} />
+                        <img
+                          src={image.url}
+                          alt={image.label}
+                          title={image.label}
+                        />
                       </div>
                     </div>
                   );
@@ -291,7 +295,11 @@ const Home: NextPage = () => {
                                 <div key={i} className="avatar">
                                   <div className="w-8 rounded-xl">
                                     {/*eslint-disable-next-line @next/next/no-img-element*/}
-                                    <img src={m.url} alt={m.label} />
+                                    <img
+                                      src={m.url}
+                                      alt={m.label}
+                                      title={m.distance.toFixed(2)}
+                                    />
                                   </div>
                                 </div>
                               ))}
