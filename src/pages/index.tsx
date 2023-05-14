@@ -178,37 +178,52 @@ const Home: NextPage = () => {
               </div>
               {input.images.length > 0 && !isUploading && (
                 <div className="absolute bottom-0 right-0 mb-4 mr-4 flex flex-row gap-1 font-bold">
-                  <button className="rounded-lg p-1 text-primary hover:bg-neutral-focus">
-                    <PlusCircleIcon
-                      className="h-8 w-8"
-                      aria-hidden="true"
+                  <div
+                    className="tooltip tooltip-primary"
+                    data-tip="Index images"
+                  >
+                    <button className="rounded-lg p-1 text-primary hover:bg-neutral-focus">
+                      <PlusCircleIcon
+                        className="h-8 w-8"
+                        aria-hidden="true"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          represent.mutate(input);
+                        }}
+                      />
+                    </button>
+                  </div>
+                  <div
+                    className="tooltip tooltip-secondary"
+                    data-tip="Find matches"
+                  >
+                    <button
+                      className="rounded-lg p-1 text-secondary hover:bg-neutral-focus"
                       onClick={(e) => {
                         e.stopPropagation();
-                        represent.mutate(input);
+                        find.mutate(input);
                       }}
-                    />
-                  </button>
-                  <button
-                    className="rounded-lg p-1 text-secondary hover:bg-neutral-focus"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      find.mutate(input);
-                    }}
+                    >
+                      <MagnifyingGlassCircleIcon
+                        className="h-8 w-8"
+                        aria-hidden="true"
+                      />
+                    </button>
+                  </div>
+                  <div
+                    className="tooltip tooltip-accent"
+                    data-tip="Clear input"
                   >
-                    <MagnifyingGlassCircleIcon
-                      className="h-8 w-8"
-                      aria-hidden="true"
-                    />
-                  </button>
-                  <button
-                    className="rounded-lg p-1 text-accent hover:bg-neutral-focus"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setInput((prev) => ({ ...prev, images: [] }));
-                    }}
-                  >
-                    <XCircleIcon className="h-8 w-8" aria-hidden="true" />
-                  </button>
+                    <button
+                      className="rounded-lg p-1 text-accent hover:bg-neutral-focus"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setInput((prev) => ({ ...prev, images: [] }));
+                      }}
+                    >
+                      <XCircleIcon className="h-8 w-8" aria-hidden="true" />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
