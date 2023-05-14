@@ -33,6 +33,10 @@ const Output = z.object({
       url: z.string().url(),
       time: z.number(),
       precision: z.number(),
+      model: z.enum(MODELS),
+      detector: z.enum(DETECTORS),
+      distanceMetric: z.enum(DISTANCE_METRICS),
+      database: z.enum(DATABASES),
       matches: z.array(
         z.object({
           label: z.string().regex(/^[a-zA-Z0-9-_]+$/),
@@ -122,6 +126,10 @@ export const appRouter = createTRPCRouter({
                 ? 1
                 : images.filter((i) => i.label === label).length /
                   images.length,
+            model,
+            detector,
+            distanceMetric,
+            database,
             matches: images,
           });
         }
