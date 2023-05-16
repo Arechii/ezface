@@ -54,7 +54,7 @@ export const appRouter = createTRPCRouter({
     .mutation(
       async ({
         input: { images, model, detector, database, distanceMetric },
-        ctx: { prisma },
+        ctx: { prisma, qdrant },
       }) => {
         for (const { label, url } of images) {
           const embedding = await represent(
@@ -77,6 +77,39 @@ export const appRouter = createTRPCRouter({
                 embedding
               )}::vector WHERE "id" = ${image.id}`;
               break;
+            case "Qdrant":
+              const collectionName = `Image-${model}-${detector}-${distanceMetric}`;
+              const collections = await qdrant.getCollections();
+
+              if (
+                !collections.collections.find((c) => c.name === collectionName)
+              ) {
+                await qdrant.createCollection(collectionName, {
+                  vectors: {
+                    size: embedding.length,
+                    distance: distanceMetric === "Cosine" ? "Cosine" : "Euclid",
+                  },
+                });
+              }
+
+              await qdrant.upsert(collectionName, {
+                wait: true,
+                points: [
+                  {
+                    id: parseInt(
+                      Math.floor(Math.random() * 1000000)
+                        .toString()
+                        .padStart(6, "0")
+                    ),
+                    vector: embedding,
+                    payload: {
+                      label,
+                      url,
+                    },
+                  },
+                ],
+              });
+              break;
           }
         }
       }
@@ -87,20 +120,23 @@ export const appRouter = createTRPCRouter({
     .mutation(
       async ({
         input: { images, model, detector, database, distanceMetric },
-        ctx: { prisma },
+        ctx: { prisma, qdrant },
       }) => {
         const results: z.infer<typeof Output>["results"] = [];
 
         for (const { label, url } of images) {
           let images: ImageFindResult[] = [];
           const start = Date.now();
-          const embedding = JSON.stringify(
-            await represent(await fetchImage(url), model, detector)
+          const threshold = THRESHOLDS[model][distanceMetric];
+          let embedding: number[] | string = await represent(
+            await fetchImage(url),
+            model,
+            detector
           );
 
           switch (database) {
             case "PostgreSQL":
-              const threshold = THRESHOLDS[model][distanceMetric];
+              embedding = JSON.stringify(embedding);
               const query =
                 distanceMetric === "Euclidean"
                   ? prisma.$queryRaw<ImageFindResult[]>`
@@ -114,6 +150,37 @@ export const appRouter = createTRPCRouter({
                     WHERE model = ${model} AND detector = ${detector} AND embedding <=> ${embedding}::vector <= ${threshold} 
                     ORDER BY distance`;
               images = await query;
+              break;
+            case "Qdrant":
+              const collectionName = `Image-${model}-${detector}-${distanceMetric}`;
+              const collections = await qdrant.getCollections();
+
+              if (
+                !collections.collections.find((c) => c.name === collectionName)
+              ) {
+                await qdrant.createCollection(collectionName, {
+                  vectors: {
+                    size: embedding.length,
+                    distance: distanceMetric === "Cosine" ? "Cosine" : "Euclid",
+                  },
+                });
+              }
+
+              const res = await qdrant.search(collectionName, {
+                vector: embedding,
+                score_threshold:
+                  distanceMetric === "Cosine" ? 1 - threshold : threshold,
+                with_payload: true,
+              });
+
+              images = res.map((r) => ({
+                label: r.payload?.label as string,
+                url: r.payload?.url as string,
+                distance: distanceMetric === "Cosine" ? 1 - r.score : r.score,
+              }));
+
+              console.log(images);
+
               break;
           }
 
