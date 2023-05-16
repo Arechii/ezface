@@ -103,7 +103,7 @@ const Home: NextPage = () => {
             Ez<span className="text-primary">Face</span>
           </h1>
           <div className="flex max-w-2xl flex-col gap-2">
-            <div className="z-10 flex flex-row gap-2 rounded-xl bg-neutral p-4">
+            <div className="z-20 flex flex-row gap-2 rounded-xl bg-neutral p-4">
               <div className="w-40">
                 <h3 className="label-text">Model</h3>
                 <Select
