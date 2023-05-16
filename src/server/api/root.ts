@@ -33,6 +33,8 @@ const Output = z.object({
       url: z.string().url(),
       time: z.number(),
       precision: z.number(),
+      recall: z.number(),
+      f1: z.number(),
       model: z.enum(MODELS),
       detector: z.enum(DETECTORS),
       distanceMetric: z.enum(DISTANCE_METRICS),
@@ -126,7 +128,9 @@ export const appRouter = createTRPCRouter({
 
         for (const { label, url } of images) {
           let images: ImageFindResult[] = [];
+          let count = 0;
           const start = Date.now();
+          let end = 0;
           const threshold = THRESHOLDS[model][distanceMetric];
           let embedding: number[] | string = await represent(
             await fetchImage(url),
@@ -150,6 +154,10 @@ export const appRouter = createTRPCRouter({
                     WHERE model = ${model} AND detector = ${detector} AND embedding <=> ${embedding}::vector <= ${threshold} 
                     ORDER BY distance`;
               images = await query;
+              end = Date.now();
+              count = await prisma.image.count({
+                where: { label, model, detector },
+              });
               break;
             case "Qdrant":
               const collectionName = `Image-${model}-${detector}-${distanceMetric}`;
@@ -178,21 +186,30 @@ export const appRouter = createTRPCRouter({
                 url: r.payload?.url as string,
                 distance: distanceMetric === "Cosine" ? 1 - r.score : r.score,
               }));
-
-              console.log(images);
-
+              end = Date.now();
+              count = (
+                await qdrant.count(collectionName, {
+                  filter: { must: [{ key: "label", match: { value: label } }] },
+                })
+              ).count;
               break;
           }
+
+          const truePositives = images.filter((i) => i.label === label).length;
+          const falsePositives = images.length - truePositives;
+          const falseNegatives = count - truePositives;
+          const precision =
+            truePositives / (truePositives + falsePositives || 1);
+          const recall = truePositives / (truePositives + falseNegatives);
+          const f1 = (2 * (precision * recall)) / (precision + recall || 1);
 
           results.push({
             label,
             url,
-            time: (Date.now() - start) / 1000,
-            precision:
-              images.length === 0
-                ? 1
-                : images.filter((i) => i.label === label).length /
-                  images.length,
+            time: (end - start) / 1000,
+            precision,
+            recall,
+            f1,
             model,
             detector,
             distanceMetric,

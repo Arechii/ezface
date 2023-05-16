@@ -256,6 +256,8 @@ const Home: NextPage = () => {
                         <th>Label</th>
                         <th>Time</th>
                         <th>Precision</th>
+                        <th>Recall</th>
+                        <th>F1</th>
                         <th>Matches</th>
                       </tr>
                     </thead>
@@ -281,12 +283,32 @@ const Home: NextPage = () => {
                           <td>
                             <span
                               className={`${
-                                r.precision > 0.8
+                                r.precision >= 0.8
                                   ? "badge-success"
                                   : "badge-error"
                               } badge`}
                             >
                               {r.precision.toFixed(2)}
+                            </span>
+                          </td>
+                          <td>
+                            <span
+                              className={`${
+                                r.recall >= 0.8
+                                  ? "badge-success"
+                                  : "badge-error"
+                              } badge`}
+                            >
+                              {r.recall.toFixed(2)}
+                            </span>
+                          </td>
+                          <td>
+                            <span
+                              className={`${
+                                r.f1 >= 0.8 ? "badge-success" : "badge-error"
+                              } badge`}
+                            >
+                              {r.f1.toFixed(2)}
                             </span>
                           </td>
                           <td>
