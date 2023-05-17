@@ -268,7 +268,11 @@ const Home: NextPage = () => {
                             <div className="avatar" key={i}>
                               <div className="w-8 rounded-xl">
                                 {/*eslint-disable-next-line @next/next/no-img-element*/}
-                                <img src={r.url} alt={r.label} />
+                                <img
+                                  src={r.url}
+                                  alt={r.label}
+                                  title={r.label}
+                                />
                               </div>
                             </div>
                           </th>
@@ -320,7 +324,9 @@ const Home: NextPage = () => {
                                     <img
                                       src={m.url}
                                       alt={m.label}
-                                      title={m.distance.toFixed(2)}
+                                      title={`${m.label} - ${m.distance.toFixed(
+                                        2
+                                      )}`}
                                     />
                                   </div>
                                 </div>
