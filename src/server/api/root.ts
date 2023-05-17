@@ -69,10 +69,12 @@ export const appRouter = createTRPCRouter({
               detector,
             },
           });
+
           await prisma.$executeRaw`UPDATE "Image" SET embedding = ${JSON.stringify(
             embedding
           )}::vector WHERE "id" = ${image.id}`;
           break;
+
         case "Qdrant":
           const collectionName = `Image-${model}-${detector}-${distanceMetric}`;
           const collections = await qdrant.getCollections();
@@ -104,8 +106,10 @@ export const appRouter = createTRPCRouter({
             ],
           });
           break;
+
         case "Redis":
           const index = `Image-${model}-${detector}-${distanceMetric}`;
+
           try {
             await redis.ft.create(
               index,
@@ -146,6 +150,7 @@ export const appRouter = createTRPCRouter({
               embedding: Buffer.from(new Float32Array(embedding).buffer),
             }
           );
+          break;
       }
     }
   ),
@@ -163,11 +168,11 @@ export const appRouter = createTRPCRouter({
         },
         ctx: { prisma, qdrant, redis },
       }) => {
+        const start = Date.now();
+        const threshold = THRESHOLDS[model][distanceMetric];
         let images: ImageFindResult[] = [];
         let count = 0;
-        const start = Date.now();
         let end = 0;
-        const threshold = THRESHOLDS[model][distanceMetric];
         let embedding: number[] | string = await represent(
           await fetchImage(url),
           model,
@@ -195,6 +200,7 @@ export const appRouter = createTRPCRouter({
               where: { label, model, detector },
             });
             break;
+
           case "Qdrant":
             const collectionName = `Image-${model}-${detector}-${distanceMetric}`;
             const collections = await qdrant.getCollections();
@@ -229,6 +235,7 @@ export const appRouter = createTRPCRouter({
               })
             ).count;
             break;
+
           case "Redis":
             const index = `Image-${model}-${detector}-${distanceMetric}`;
             const results = await redis.ft.search(
