@@ -11,7 +11,7 @@ import {
 import { generateReactHelpers } from "@uploadthing/react/hooks";
 import { type NextPage } from "next";
 import Head from "next/head";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import Select from "~/components/select";
 import { type AppRouter } from "~/server/api/root";
@@ -31,48 +31,49 @@ type Output = inferProcedureOutput<AppRouter["find"]>;
 
 const Home: NextPage = () => {
   const represent = api.represent.useMutation();
-  const find = api.find.useMutation();
+  const find = api.find.useMutation({
+    onSuccess: (result) => setOutput((prev) => [...prev, result]),
+  });
 
-  const [input, setInput] = useState<Input>({
-    images: [],
+  const [input, setInput] = useState<Omit<Input, "image">>({
     model: MODELS[0],
     detector: DETECTORS[0],
     distanceMetric: DISTANCE_METRICS[0],
     database: DATABASES[0],
   });
 
-  const [isFinding, setIsFinding] = useState(false);
-  const [output, setOutput] = useState<Output | null>(null);
+  const [images, setImages] = useState<Input["image"][]>([]);
+  const [output, setOutput] = useState<Output[]>([]);
+  const loading = useMemo(
+    () => represent.isLoading || find.isLoading,
+    [represent.isLoading, find.isLoading]
+  );
 
   const { startUpload, isUploading } = useUploadThing({
     endpoint: "imageUploader",
     onClientUploadComplete: (r) =>
       r &&
-      setInput((prev) => ({
-        ...prev,
-        images: prev.images.map((i) => {
+      setImages((prev) =>
+        prev.map((i) => {
           if (i.url) return i;
 
           return {
             label: i.label.split(".")[0] ?? i.label,
             url: r.find((r) => r.fileKey.includes(i.label))?.fileUrl ?? "",
           };
-        }),
-      })),
+        })
+      ),
   });
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
-      setInput((prev) => ({
+      setImages((prev) => [
         ...prev,
-        images: [
-          ...prev.images,
-          ...acceptedFiles.map((f) => ({
-            label: f.name.replace(f.type.split("/")[1] ?? "", ""),
-            url: "",
-          })),
-        ],
-      }));
+        ...acceptedFiles.map((f) => ({
+          label: f.name.replace(f.type.split("/")[1] ?? "", ""),
+          url: "",
+        })),
+      ]);
       void startUpload(acceptedFiles);
     },
     [startUpload]
@@ -145,9 +146,9 @@ const Home: NextPage = () => {
                 />
               </div>
             </div>
-            {!output && input.images.length > 0 && (
+            {output.length === 0 && images.length > 0 && (
               <div className="flex h-16 flex-row gap-2 overflow-x-scroll rounded-xl bg-neutral p-2">
-                {input.images.map((image, i) => {
+                {images.map((image, i) => {
                   if (!image.url) return null;
 
                   return (
@@ -165,7 +166,7 @@ const Home: NextPage = () => {
                 })}
               </div>
             )}
-            {!output && (
+            {output.length === 0 && (
               <div
                 className="relative flex h-96 w-full flex-col items-center justify-center gap-4 rounded-xl bg-neutral p-2"
                 {...getRootProps()}
@@ -177,7 +178,7 @@ const Home: NextPage = () => {
                 `}
                 >
                   <input {...getInputProps()} />
-                  {!isUploading && !isFinding ? (
+                  {!isUploading && !loading ? (
                     <ArrowUpTrayIcon
                       className={`h-8 w-8 text-neutral-content hover:cursor-pointer ${
                         isDragAccept ? "text-success" : ""
@@ -188,7 +189,7 @@ const Home: NextPage = () => {
                     <progress className="progress progress-primary w-56 bg-base-300/20" />
                   )}
                 </div>
-                {input.images.length > 0 && !isUploading && (
+                {images.length > 0 && !isUploading && (
                   <div className="absolute bottom-0 right-0 mb-4 mr-4 flex flex-row gap-1 font-bold">
                     <div
                       className="tooltip tooltip-primary"
@@ -200,7 +201,10 @@ const Home: NextPage = () => {
                           aria-hidden="true"
                           onClick={(e) => {
                             e.stopPropagation();
-                            represent.mutate(input);
+
+                            for (const image of images) {
+                              represent.mutate({ image, ...input });
+                            }
                           }}
                         />
                       </button>
@@ -213,13 +217,10 @@ const Home: NextPage = () => {
                         className="rounded-lg p-1 text-secondary hover:bg-neutral-focus"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setIsFinding(true);
-                          find.mutate(input, {
-                            onSuccess(data) {
-                              setOutput(data);
-                              setIsFinding(false);
-                            },
-                          });
+
+                          for (const image of images) {
+                            find.mutate({ image, ...input });
+                          }
                         }}
                       >
                         <MagnifyingGlassCircleIcon
@@ -236,7 +237,7 @@ const Home: NextPage = () => {
                         className="rounded-lg p-1 text-accent hover:bg-neutral-focus"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setInput((prev) => ({ ...prev, images: [] }));
+                          setImages([]);
                         }}
                       >
                         <XCircleIcon className="h-8 w-8" aria-hidden="true" />
@@ -246,7 +247,7 @@ const Home: NextPage = () => {
                 )}
               </div>
             )}
-            {output && (
+            {output.length > 0 && (
               <div className="relative flex h-96 w-full flex-col gap-4 rounded-xl bg-neutral p-2">
                 <div className="h-5/6 w-full overflow-x-auto rounded-xl">
                   <table className="table-zebra table-compact table h-full w-full">
@@ -262,7 +263,7 @@ const Home: NextPage = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {output.results.map((r, i) => (
+                      {output.map((r, i) => (
                         <tr key={i}>
                           <th>
                             <div className="avatar" key={i}>
@@ -345,7 +346,7 @@ const Home: NextPage = () => {
                   >
                     <button
                       className="rounded-lg p-1 text-accent hover:bg-neutral-focus"
-                      onClick={() => setOutput(null)}
+                      onClick={() => setOutput([])}
                     >
                       <XCircleIcon className="h-8 w-8" aria-hidden="true" />
                     </button>
