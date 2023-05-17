@@ -56,5 +56,5 @@ npm run dev
 
 ## Acknowledgements
 
-- [t3]("https://create.t3.gg")
-- [deepface]("https://github.com/serengil/deepface")
+- [t3](https://create.t3.gg)
+- [deepface](https://github.com/serengil/deepface)
