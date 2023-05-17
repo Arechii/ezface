@@ -1,28 +1,60 @@
-# Create T3 App
+# ezface
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+> This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
 
-## What's next? How do I make an app with this?
+This app functions as a proof of concept for trying out various facial recognition models in combination with several facial detection models, distance metrics and databases.
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+Models:
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+- VGG-Face
+- Facenet
+- Facenet512
+- DeepFace
+- DeepID
+- ArcFace
+- Dlib
+- OpenFace
+- SFace
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+Detectors:
 
-## Learn More
+- OpenCV
+- MTCNN
+- RetinaFace
+- Mediapipe
+- Dlib
+- SSD
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+Distance metrics:
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+- Cosine
+- Euclidean
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+Databases:
 
-## How do I deploy this?
+- PostgreSQL
+- Qdrant
+- Redis
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+## Deployment
+
+### Prerequisites
+
+- Node.js
+- Docker
+
+### Local
+
+Copy `.env.example` to `.env` and configure the variables
+
+```bash
+npm install
+docker compose up -d
+npx prisma db push
+npm run dev
+```
+
+## Acknowledgements
+
+- [t3]("https://create.t3.gg")
+- [deepface]("https://github.com/serengil/deepface")
