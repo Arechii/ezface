@@ -1,4 +1,5 @@
 import { type Image } from "@prisma/client";
+import { SchemaFieldTypes, VectorAlgorithms } from "redis";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import {
@@ -56,7 +57,7 @@ export const appRouter = createTRPCRouter({
     .mutation(
       async ({
         input: { images, model, detector, database, distanceMetric },
-        ctx: { prisma, qdrant },
+        ctx: { prisma, qdrant, redis },
       }) => {
         for (const { label, url } of images) {
           const embedding = await represent(
@@ -112,6 +113,48 @@ export const appRouter = createTRPCRouter({
                 ],
               });
               break;
+            case "Redis":
+              const index = `Image-${model}-${detector}-${distanceMetric}`;
+              try {
+                await redis.ft.create(
+                  index,
+                  {
+                    label: SchemaFieldTypes.TAG,
+                    embedding: {
+                      type: SchemaFieldTypes.VECTOR,
+                      ALGORITHM: VectorAlgorithms.HNSW,
+                      TYPE: "FLOAT32",
+                      DIM: embedding.length,
+                      DISTANCE_METRIC:
+                        distanceMetric === "Cosine" ? "COSINE" : "L2",
+                    },
+                  },
+                  {
+                    ON: "HASH",
+                    PREFIX: `${index}:`,
+                  }
+                );
+              } catch (err) {
+                if (
+                  !(err instanceof Error) ||
+                  err.message !== "Index already exists"
+                ) {
+                  throw err;
+                }
+              }
+
+              await redis.hSet(
+                `${index}:${parseInt(
+                  Math.floor(Math.random() * 1000000)
+                    .toString()
+                    .padStart(6, "0")
+                )}`,
+                {
+                  label,
+                  url,
+                  embedding: Buffer.from(new Float32Array(embedding).buffer),
+                }
+              );
           }
         }
       }
@@ -122,7 +165,7 @@ export const appRouter = createTRPCRouter({
     .mutation(
       async ({
         input: { images, model, detector, database, distanceMetric },
-        ctx: { prisma, qdrant },
+        ctx: { prisma, qdrant, redis },
       }) => {
         const results: z.infer<typeof Output>["results"] = [];
 
@@ -192,6 +235,29 @@ export const appRouter = createTRPCRouter({
                   filter: { must: [{ key: "label", match: { value: label } }] },
                 })
               ).count;
+              break;
+            case "Redis":
+              const index = `Image-${model}-${detector}-${distanceMetric}`;
+              const results = await redis.ft.search(
+                index,
+                "@embedding:[VECTOR_RANGE $RANGE $BLOB]=>{$YIELD_DISTANCE_AS: distance}",
+                {
+                  PARAMS: {
+                    BLOB: Buffer.from(new Float32Array(embedding).buffer),
+                    RANGE: threshold,
+                  },
+                  SORTBY: "distance",
+                  DIALECT: 2,
+                  RETURN: ["label", "url", "distance"],
+                }
+              );
+              images = results.documents.map((r) => ({
+                label: r.value.label as string,
+                url: r.value.url as string,
+                distance: parseFloat(r.value.distance as string),
+              }));
+              end = Date.now();
+              count = (await redis.ft.search(index, `@label:{${label}}`)).total;
               break;
           }
 

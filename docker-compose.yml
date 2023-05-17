@@ -20,3 +20,8 @@ services:
     image: qdrant/qdrant
     ports:
       - "6333:6333"
+
+  redis:
+    image: redis/redis-stack-server
+    ports:
+      - "6379:6379"

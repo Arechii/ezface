@@ -16,7 +16,7 @@
  */
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 
-import { prisma, qdrant } from "~/server/db";
+import { prisma, qdrant, redis } from "~/server/db";
 
 type CreateContextOptions = Record<string, never>;
 
@@ -34,6 +34,7 @@ const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   return {
     prisma,
     qdrant,
+    redis,
   };
 };
 
