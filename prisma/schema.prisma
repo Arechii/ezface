@@ -13,7 +13,7 @@ datasource db {
 }
 
 model Image {
-    id        String                 @id @default(cuid())
+    id        String                 @id @default(uuid())
     label     String
     url       String
     model     String

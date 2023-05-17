@@ -1,5 +1,6 @@
 import { type Image } from "@prisma/client";
 import { SchemaFieldTypes, VectorAlgorithms } from "redis";
+import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import {
@@ -92,11 +93,7 @@ export const appRouter = createTRPCRouter({
             wait: true,
             points: [
               {
-                id: parseInt(
-                  Math.floor(Math.random() * 1000000)
-                    .toString()
-                    .padStart(6, "0")
-                ),
+                id: uuidv4(),
                 vector: embedding,
                 payload: {
                   label,
@@ -138,18 +135,11 @@ export const appRouter = createTRPCRouter({
             }
           }
 
-          await redis.hSet(
-            `${index}:${parseInt(
-              Math.floor(Math.random() * 1000000)
-                .toString()
-                .padStart(6, "0")
-            )}`,
-            {
-              label,
-              url,
-              embedding: Buffer.from(new Float32Array(embedding).buffer),
-            }
-          );
+          await redis.hSet(`${index}:${uuidv4()}`, {
+            label,
+            url,
+            embedding: Buffer.from(new Float32Array(embedding).buffer),
+          });
           break;
       }
     }
