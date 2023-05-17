@@ -42,6 +42,7 @@ Databases:
 
 - Node.js
 - Docker
+- [uploadthing](https://uploadthing.com/) account
 
 ### Local
 
@@ -58,3 +59,4 @@ npm run dev
 
 - [t3](https://create.t3.gg)
 - [deepface](https://github.com/serengil/deepface)
+- [uploadthing](https://uploadthing.com/)
